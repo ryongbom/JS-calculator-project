@@ -16,8 +16,9 @@ Error Handling: Prevents division by zero and invalid operations
 View Live Calculator
 
 📁 Project Structure
-text
+
 JS-calculator-project/
+
 ├── index.html  
 ├── style.css  
 ├── calculator.js  
