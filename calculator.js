@@ -2,8 +2,10 @@ let currentNumber = "0";
 let shouldResetScreen = false;
 let firstOperand = "";
 let currentOperator = null;
+let currentExpression = "";
 
 const screenElement = document.querySelector(".curr-operand");
+const screenResult = document.querySelector(".prev-operand");
 const numberButtons = document.querySelectorAll('.btn-number, .btn-number-zero');
 const clearButton = document.querySelector('[data-action="clear"]');
 const backspaceButton = document.querySelector('[data-action="backspace"]');
@@ -12,12 +14,18 @@ const subtractButton = document.querySelector('[data-action="subtract"]');
 const divideButton = document.querySelector('[data-action="divide"]');
 const multiplyButton = document.querySelector('[data-action="multiply"]');
 const equalButton = document.querySelector('[data-action="equals"]');
+const percentButton = document.querySelector('[data-action="percent"]');
 
 function updateScreen() {
     screenElement.textContent = currentNumber;
 }
 
+function updateExpression() {
+    screenResult.textContent = currentExpression;
+}
+
 updateScreen();
+updateExpression();
 
 numberButtons.forEach(function(button) {
     button.addEventListener('click', function() {
@@ -31,7 +39,9 @@ numberButtons.forEach(function(button) {
             if (currentNumber === '0' || currentNumber === '') {
                 currentNumber = '0.';
             } else {
-                currentNumber += '.';
+                if (currentNumber.length < 15) {
+                    currentNumber += '.';
+                }
             }
         }
 
@@ -40,7 +50,9 @@ numberButtons.forEach(function(button) {
                 currentNumber = number;
                 shouldResetScreen = false;
             } else {
-                currentNumber += number;
+                if (currentNumber.length < 15) {
+                    currentNumber += number;
+                }
             }
         }
     
@@ -53,7 +65,9 @@ function clearAll() {
     firstOperand = "";
     currentOperator = null;
     shouldResetScreen = false;
+    currentExpression = "";
     updateScreen();
+    updateExpression();
 }
 
 clearButton.addEventListener('click', clearAll);
@@ -67,6 +81,21 @@ backspaceButton.addEventListener('click', function() {
 
     updateScreen();
 })
+
+percentButton.addEventListener('click', function() {
+    currentNumber = (parseFloat(currentNumber) / 100).toString();
+    updateScreen();
+})
+
+function getOperatorSymbol(operator) {
+    switch(operator) {
+        case 'addition': return '+';
+        case 'subtract': return '-';
+        case 'multiply': return '×';
+        case 'divide': return '÷';
+        default: return '';
+    }
+}
 
 additionButton.addEventListener('click', function() {
     handleOperator('addition');
@@ -85,8 +114,15 @@ multiplyButton.addEventListener('click', function() {
 })
 
 function handleOperator(operator) {
+    if (firstOperand !== "" && currentOperator !== null && !shouldResetScreen) {
+        compute();
+    }
+
     firstOperand = currentNumber;
     currentOperator = operator;
+
+    currentExpression = `${firstOperand} ${getOperatorSymbol(operator)}`;
+    updateExpression();
 
     shouldResetScreen = true;
 }
@@ -96,6 +132,10 @@ equalButton.addEventListener('click', function() {
 })
 
 function compute() {
+    if (firstOperand === "" || currentOperator === null) {
+        return;
+    }
+
     const firstNumber = parseFloat(firstOperand);
     const secondNumber = parseFloat(currentNumber);
     let result;
@@ -114,6 +154,11 @@ function compute() {
     } else if (currentOperator === 'multiply') {
         result = firstNumber * secondNumber;
     }
+
+    result = Math.round(result * 1000000) / 1000000;
+
+    currentExpression = `${firstOperand} ${getOperatorSymbol(currentOperator)} ${currentNumber} =`;
+    updateExpression();
 
     currentNumber = result.toString();
     updateScreen();
